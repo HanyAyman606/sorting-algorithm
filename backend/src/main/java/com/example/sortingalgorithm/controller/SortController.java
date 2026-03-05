@@ -16,26 +16,24 @@ import java.util.Set;
 public class SortController {
 
     // ─────────────────────────────────────────────
-    // Valid values — used for validation below
+    // Constants — single source of truth for limits
     // ─────────────────────────────────────────────
     private static final Set<String> VALID_ALGORITHMS = Set.of(
             "bubble", "selection", "insertion", "merge", "heap", "quick"
     );
-
     private static final Set<String> VALID_INPUT_TYPES = Set.of(
             "generate", "file"
     );
-
     private static final Set<String> VALID_GENERATION_MODES = Set.of(
             "random", "sorted", "inversely_sorted"
     );
 
     private static final int MAX_VISUALIZATION_SIZE = 100;
-    private static final int MAX_BENCHMARK_SIZE     = 10_000;
+    private static final int MAX_BENCHMARK_SIZE     = 10000;
     private static final int MAX_RUNS               = 100;
 
     // ─────────────────────────────────────────────
-    // Service — injected via constructor (best practice)
+    // Constructor injection — best practice
     // ─────────────────────────────────────────────
     private final SortingService sortingService;
 
@@ -45,36 +43,38 @@ public class SortController {
 
     // ═════════════════════════════════════════════
     // POST /api/sort/visualize
-    // Frontend sends: VisualizationRequest (JSON envelope)
-    // Controller: validates → hands to Service
-    // Service: does all the work, returns VisualizationResponse
+    //
+    // Flow:
+    //   Frontend sends VisualizationRequest (JSON)
+    //   Controller validates fields
+    //   Controller delegates to SortingService
+    //   Returns VisualizationResponse (steps + stats + originalArray)
     // ═════════════════════════════════════════════
     @PostMapping("/visualize")
     public ResponseEntity<?> visualize(@RequestBody VisualizationRequest request) {
 
-        // ── 1. inputType must exist and be valid ──
+        // ── 1. inputType ──
         if (request.getInputType() == null || request.getInputType().isBlank()) {
-            return ResponseEntity.badRequest().body("inputType is required (generate or file).");
+            return ResponseEntity.badRequest().body("inputType is required ('generate' or 'file').");
         }
         if (!VALID_INPUT_TYPES.contains(request.getInputType())) {
             return ResponseEntity.badRequest().body("inputType must be 'generate' or 'file'.");
         }
 
-        // ── 2. algorithm must exist and be one of the 6 ──
+        // ── 2. algorithm (single for visualization) ──
         if (request.getAlgorithm() == null || request.getAlgorithm().isBlank()) {
             return ResponseEntity.badRequest().body("Algorithm is required.");
         }
         if (!VALID_ALGORITHMS.contains(request.getAlgorithm())) {
             return ResponseEntity.badRequest().body(
                 "Unknown algorithm '" + request.getAlgorithm() + "'. " +
-                "Valid options: bubble, selection, insertion, merge, heap, quick."
+                "Valid: bubble, selection, insertion, merge, heap, quick."
             );
         }
 
-        // ── 3. Validate based on inputType ──
+        // ── 3. inputType-specific validation ──
         if (request.getInputType().equals("generate")) {
 
-            // generationMode is required for generate mode
             if (request.getGenerationMode() == null || request.getGenerationMode().isBlank()) {
                 return ResponseEntity.badRequest().body("generationMode is required when inputType is 'generate'.");
             }
@@ -84,9 +84,9 @@ public class SortController {
                 );
             }
 
-            // size must be > 0 and <= 100 for visualization
-            if (request.getSize() <= 0) {
-                return ResponseEntity.badRequest().body("Array size must be greater than 0.");
+            // size=0 means auto → service defaults to 50 for visualization
+            if (request.getSize() < 0) {
+                return ResponseEntity.badRequest().body("Array size cannot be negative.");
             }
             if (request.getSize() > MAX_VISUALIZATION_SIZE) {
                 return ResponseEntity.badRequest().body(
@@ -95,53 +95,55 @@ public class SortController {
             }
 
         } else {
-            // inputType = "file" — fileContent must be present
+            // file mode
             if (request.getFileContent() == null || request.getFileContent().isBlank()) {
                 return ResponseEntity.badRequest().body("fileContent is required when inputType is 'file'.");
             }
         }
 
-        // ── 4. All good → delegate to Service ──
+        // ── 4. Delegate to Service ──
         VisualizationResponse response = sortingService.runVisualization(request);
         return ResponseEntity.ok(response);
     }
 
     // ═════════════════════════════════════════════
     // POST /api/sort/benchmark
-    // Frontend sends: BenchmarkRequest (JSON envelope)
-    // Controller: validates → hands to Service
-    // Service: does all the work, returns List<BenchmarkResponse>
+    //
+    // Flow:
+    //   Frontend sends BenchmarkRequest (JSON)
+    //   algorithms is a List<String> from checkboxes (1 to 6)
+    //   size=0 means auto → service defaults to 1000
+    //   Controller validates fields
+    //   Controller delegates to SortingService
+    //   Returns List<BenchmarkResponse> — one row per algorithm
     // ═════════════════════════════════════════════
     @PostMapping("/benchmark")
     public ResponseEntity<?> benchmark(@RequestBody BenchmarkRequest request) {
 
-        // ── 1. algorithms list must exist and not be empty ──
+        // ── 1. algorithms list — from checkboxes ──
         if (request.getAlgorithms() == null || request.getAlgorithms().isEmpty()) {
             return ResponseEntity.badRequest().body("Select at least one algorithm.");
         }
-
-        // each algorithm in the list must be valid
         for (String algo : request.getAlgorithms()) {
             if (!VALID_ALGORITHMS.contains(algo)) {
                 return ResponseEntity.badRequest().body(
                     "Unknown algorithm '" + algo + "'. " +
-                    "Valid options: bubble, selection, insertion, merge, heap, quick."
+                    "Valid: bubble, selection, insertion, merge, heap, quick."
                 );
             }
         }
 
-        // ── 2. inputType must exist and be valid ──
+        // ── 2. inputType ──
         if (request.getInputType() == null || request.getInputType().isBlank()) {
-            return ResponseEntity.badRequest().body("inputType is required (generate or file).");
+            return ResponseEntity.badRequest().body("inputType is required ('generate' or 'file').");
         }
         if (!VALID_INPUT_TYPES.contains(request.getInputType())) {
             return ResponseEntity.badRequest().body("inputType must be 'generate' or 'file'.");
         }
 
-        // ── 3. Validate based on inputType ──
+        // ── 3. inputType-specific validation ──
         if (request.getInputType().equals("generate")) {
 
-            // generationMode is required
             if (request.getGenerationMode() == null || request.getGenerationMode().isBlank()) {
                 return ResponseEntity.badRequest().body("generationMode is required when inputType is 'generate'.");
             }
@@ -151,9 +153,9 @@ public class SortController {
                 );
             }
 
-            // size must be > 0 and <= 10,000 for benchmark
-            if (request.getSize() <= 0) {
-                return ResponseEntity.badRequest().body("Array size must be greater than 0.");
+            // size=0 means auto → service defaults to 1000 for benchmark
+            if (request.getSize() < 0) {
+                return ResponseEntity.badRequest().body("Array size cannot be negative.");
             }
             if (request.getSize() > MAX_BENCHMARK_SIZE) {
                 return ResponseEntity.badRequest().body(
@@ -162,7 +164,7 @@ public class SortController {
             }
 
         } else {
-            // inputType = "file" — fileContent and fileName must be present
+            // file mode
             if (request.getFileContent() == null || request.getFileContent().isBlank()) {
                 return ResponseEntity.badRequest().body("fileContent is required when inputType is 'file'.");
             }
@@ -171,7 +173,7 @@ public class SortController {
             }
         }
 
-        // ── 4. runs must be between 1 and MAX_RUNS ──
+        // ── 4. runs — must be 1..100 ──
         if (request.getRuns() <= 0) {
             return ResponseEntity.badRequest().body("Number of runs must be at least 1.");
         }
@@ -179,7 +181,7 @@ public class SortController {
             return ResponseEntity.badRequest().body("Number of runs cannot exceed " + MAX_RUNS + ".");
         }
 
-        // ── 5. All good → delegate to Service ──
+        // ── 5. Delegate to Service ──
         List<BenchmarkResponse> response = sortingService.runBenchmark(request);
         return ResponseEntity.ok(response);
     }

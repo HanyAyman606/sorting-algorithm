@@ -1,1 +1,43 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+/* ── Color Palette ── */
+:root {
+  --c1: #1A05A2;   /* deep blue */
+  --c2: #8F0177;   /* purple-magenta */
+  --c3: #DE1A58;   /* crimson */
+  --c4: #F67D31;   /* orange */
+
+  --bg:       #07060f;
+  --surface:  #0e0c1a;
+  --card:     #15122a;
+  --border:   #2a2540;
+  --text:     #f0eeff;
+  --muted:    #6b6490;
+
+  /* Bar colors */
+  --bar-default:  #1A05A2;
+  --bar-compare:  #DE1A58;
+  --bar-swap:     #F67D31;
+  --bar-sorted:   #2ed573;
+  --bar-pivot:    #8F0177;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  overflow: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c1); }
