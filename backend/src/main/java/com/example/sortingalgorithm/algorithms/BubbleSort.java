@@ -2,8 +2,9 @@ package com.example.sortingalgorithm.algorithms;
 
 import com.example.sortingalgorithm.tracker.EinSehrya;
 
-public class BubbleSort {
-    public void sort(int[] arr1,EinSehrya einSehrya) {
+public class BubbleSort implements SortingAlgorithm {
+    @Override
+    public void sort(int[] arr1, EinSehrya einSehrya) {
         int n = arr1.length;
         for (int i = 0; i < n; i++) {
             boolean found = false;

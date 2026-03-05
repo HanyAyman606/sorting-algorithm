@@ -2,7 +2,8 @@ package com.example.sortingalgorithm.algorithms;
 
 import com.example.sortingalgorithm.tracker.EinSehrya;
 
-public class SelectionSort {
+public class SelectionSort implements SortingAlgorithm{
+    @Override
     public void sort(int[] arr1, EinSehrya einSehrya) {
         int n = arr1.length;
         for (int i = 0; i < n - 1; i++) {
