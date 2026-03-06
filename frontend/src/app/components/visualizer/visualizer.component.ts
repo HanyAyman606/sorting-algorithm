@@ -20,154 +20,103 @@ export class VisualizerComponent implements OnChanges, OnDestroy {
   @Input() label: string = 'Array';
   @Input() color: string = '#1A05A2';
 
-  bars: Bar[]=[];
+  bars: Bar[] = [];
   steps: SortStep[] = [];
-  currentStep =0;
-  isPlaying =false;
-  speed=200;
-  liveComparisons=0;
-  liveInterchanges=0;
-  soundEnabled=true;
-  elapsedMs =0;
-  private timerInterval: any =null;
-  private timerStart = 0;
-  private stopFlag =false;
-  private maxVal =1;
-  private audioCtx: AudioContext | null=null;
+  currentStep = 0;
+  isPlaying = false;
+  speed = 200;
+  liveComparisons = 0;
+  liveInterchanges = 0;
+  soundEnabled = true;
+  elapsedMs = 0;
 
-  ngOnChanges(changes: SimpleChanges)
-  
-  {
-  
-    if (changes['response'] && this.response) 
-      
-    {
-     
+  // Track current pivot index so it stays purple until resolved
+  private currentPivotIndex: number = -1;
+
+  private timerInterval: any = null;
+  private timerStart = 0;
+  private stopFlag = false;
+  private maxVal = 1;
+  private audioCtx: AudioContext | null = null;
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['response'] && this.response) {
       this.hardStop();
-     
       this.initVisualizer();
-    
     }
   }
 
-  ngOnDestroy() 
-    
-  {
+  ngOnDestroy() {
     this.hardStop();
     this.closeAudio();
-  
   }
 
-  hardStop() 
-  
-  {
-  
-       this.stopFlag = true;
-  
-       this.isPlaying = false;
-       this.stopTimer();
-  
-      this.closeAudio();
+  hardStop() {
+    this.stopFlag = true;
+    this.isPlaying = false;
+    this.stopTimer();
+    this.closeAudio();
   }
 
-  private closeAudio()
-  
-  {
-  
+  private closeAudio() {
     if (this.audioCtx) {
-  
-      try
-       {
-         this.audioCtx.close(); 
-      
-      } 
-      catch {}
-  
-      this.audioCtx =null;
-  
+      try { this.audioCtx.close(); } catch {}
+      this.audioCtx = null;
     }
   }
 
-  private initVisualizer()
-  
-  {
+  private initVisualizer() {
     this.stopFlag = false;
     const arr = [...this.response.originalArray];
-    this.maxVal = Math.max(...arr);
+    this.maxVal = Math.max(...arr, 1);
     this.steps = this.response.steps;
     this.bars = arr.map(v => ({ value: v, state: 'default' as BarState }));
     this.currentStep = 0;
     this.liveComparisons = 0;
     this.liveInterchanges = 0;
     this.elapsedMs = 0;
-  
-  
+    this.currentPivotIndex = -1;
   }
 
-  getBarHeight(value: number): number
-  
-  {
-    return Math.max(3,(value/this.maxVal) * 100);
+  getBarHeight(value: number): number {
+    return Math.max(3, (value / this.maxVal) * 100);
   }
 
-  private startTimer()
-  
-  {
-    this.timerStart = Date.now()-this.elapsedMs;
-    this.timerInterval = setInterval(() =>
-  {
-  
-    this.elapsedMs = Date.now()-this.timerStart;
-  
-  },
-  
-       50 );
+  private startTimer() {
+    this.timerStart = Date.now() - this.elapsedMs;
+    this.timerInterval = setInterval(() => {
+      this.elapsedMs = Date.now() - this.timerStart;
+    }, 50);
   }
 
   private stopTimer() {
-    if (this.timerInterval) 
-      
-    {
+    if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
   }
 
-  get formattedTime(): string
-  
-  {
+  get formattedTime(): string {
     if (this.elapsedMs === 0) return '0 ms';
     if (this.elapsedMs < 1000) return `${this.elapsedMs} ms`;
     return `${(this.elapsedMs / 1000).toFixed(2)} s`;
   }
 
-  private getAudioCtx(): AudioContext | null
-  
-  {
-    try 
-    {
-      if (!this.audioCtx || this.audioCtx.state ==='closed')
-         {
+  private getAudioCtx(): AudioContext | null {
+    try {
+      if (!this.audioCtx || this.audioCtx.state === 'closed') {
         this.audioCtx = new AudioContext();
       }
       return this.audioCtx;
-    } 
-    
-    catch { return null; 
-
-    }
+    } catch { return null; }
   }
 
-  private playTone(freq: number, dur:number,type:OscillatorType ='sine', vol=0.1)
-   {
+  private playTone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.1) {
     if (!this.soundEnabled) return;
-    try
-    
-    
-    {
+    try {
       const ctx = this.getAudioCtx();
       if (!ctx || ctx.state === 'closed') return;
-      const osc = ctx.createOscillator();
+      const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
       gain.connect(ctx.destination);
@@ -177,38 +126,27 @@ export class VisualizerComponent implements OnChanges, OnDestroy {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + dur);
-    } 
-    
-    catch {}
+    } catch {}
   }
 
-  private soundForStep(type: string, value?: number) 
-  
-  
-  {
+  private soundForStep(type: string, value?: number) {
     if (this.stopFlag) return;
     const baseFreq = value ? 200 + (value / this.maxVal) * 600 : 400;
     switch (type) {
-      case 'compare':    this.playTone(baseFreq, 0.07, 'sine', 0.09); break;
-      case 'swap':       this.playTone(baseFreq * 1.4, 0.1, 'triangle', 0.15); break;
-      case 'overwrite':  this.playTone(baseFreq, 0.09, 'triangle', 0.12); break;
-      case 'markSorted': this.playTone(880, 0.12, 'sine', 0.1); break;
-      case 'pivot':      this.playTone(300, 0.09, 'sawtooth', 0.09); break;
+      case 'compare':    this.playTone(baseFreq,        0.07, 'sine',     0.09); break;
+      case 'swap':       this.playTone(baseFreq * 1.4,  0.10, 'triangle', 0.15); break;
+      case 'overwrite':  this.playTone(baseFreq,        0.09, 'triangle', 0.12); break;
+      case 'markSorted': this.playTone(880,             0.12, 'sine',     0.10); break;
+      case 'pivot':      this.playTone(300,             0.09, 'sawtooth', 0.09); break;
     }
   }
 
-  togglePlay() 
-  {
-    if (this.isPlaying)
-       {
+  togglePlay() {
+    if (this.isPlaying) {
       this.isPlaying = false;
       this.stopFlag = true;
       this.stopTimer();
-    } 
-    
-    else
-      
-      {
+    } else {
       this.stopFlag = false;
       this.isPlaying = true;
       this.startTimer();
@@ -216,41 +154,32 @@ export class VisualizerComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private async playLoop() 
-  
-  {
-    while (this.currentStep < this.steps.length && !this.stopFlag)
-      {
+  private async playLoop() {
+    while (this.currentStep < this.steps.length && !this.stopFlag) {
       this.applyStep(this.steps[this.currentStep]);
       this.currentStep++;
       await this.delay(this.speed);
     }
-    if (!this.stopFlag && this.currentStep >= this.steps.length)
-      
-      {
+    if (!this.stopFlag && this.currentStep >= this.steps.length) {
       this.stopTimer();
     }
     this.isPlaying = false;
   }
 
-  stepForward()
-  
-  {
+  stepForward() {
     if (this.currentStep < this.steps.length) {
       this.applyStep(this.steps[this.currentStep]);
       this.currentStep++;
     }
   }
 
-  stepBack()
-   {
+  stepBack() {
     if (this.currentStep <= 0) return;
     this.currentStep--;
     this.replayTo(this.currentStep);
   }
 
-  reset()
-   {
+  reset() {
     this.hardStop();
     this.stopFlag = false;
     this.bars = [...this.response.originalArray].map(v => ({ value: v, state: 'default' as BarState }));
@@ -258,26 +187,33 @@ export class VisualizerComponent implements OnChanges, OnDestroy {
     this.liveComparisons = 0;
     this.liveInterchanges = 0;
     this.elapsedMs = 0;
+    this.currentPivotIndex = -1;
   }
 
-  skipToEnd()
-   {
+  skipToEnd() {
     this.hardStop();
     this.stopFlag = false;
     while (this.currentStep < this.steps.length) {
       this.applyStepSilent(this.steps[this.currentStep]);
       this.currentStep++;
     }
+    this.liveComparisons  = this.response.totalComparisons;
+    this.liveInterchanges = this.response.totalInterchanges;
   }
 
-  onSpeedChange(e: Event)
-  {
+  onSpeedChange(e: Event) {
     this.speed = 1010 - +(e.target as HTMLInputElement).value;
   }
 
   private applyStep(step: SortStep) {
     if (this.stopFlag) return;
-    this.bars.forEach(b => { if (b.state !== 'sorted') b.state = 'default'; });
+
+    this.bars.forEach((b, idx) => {
+      if (b.state !== 'sorted') {
+        b.state = (idx === this.currentPivotIndex) ? 'pivot' : 'default';
+      }
+    });
+
     switch (step.type) {
       case 'compare':
         this.bars[step.indices[0]].state = 'compare';
@@ -285,27 +221,35 @@ export class VisualizerComponent implements OnChanges, OnDestroy {
         this.soundForStep('compare', this.bars[step.indices[0]].value);
         this.liveComparisons++;
         break;
+
       case 'swap': {
         this.bars[step.indices[0]].state = 'swap';
         this.bars[step.indices[1]].state = 'swap';
         const tmp = this.bars[step.indices[0]].value;
         this.bars[step.indices[0]].value = this.bars[step.indices[1]].value;
         this.bars[step.indices[1]].value = tmp;
+        if (step.indices[0] === this.currentPivotIndex) this.currentPivotIndex = step.indices[1];
+        else if (step.indices[1] === this.currentPivotIndex) this.currentPivotIndex = step.indices[0];
         this.soundForStep('swap', this.bars[step.indices[0]].value);
         this.liveInterchanges++;
         break;
       }
+
       case 'overwrite':
         this.bars[step.indices[0]].state = 'swap';
         this.bars[step.indices[0]].value = step.values![0];
         this.soundForStep('overwrite', step.values![0]);
         this.liveInterchanges++;
         break;
+
       case 'markSorted':
         this.bars[step.indices[0]].state = 'sorted';
+        if (step.indices[0] === this.currentPivotIndex) this.currentPivotIndex = -1;
         this.soundForStep('markSorted');
         break;
+
       case 'pivot':
+        this.currentPivotIndex = step.indices[0];
         this.bars[step.indices[0]].state = 'pivot';
         this.soundForStep('pivot');
         break;
@@ -313,48 +257,58 @@ export class VisualizerComponent implements OnChanges, OnDestroy {
   }
 
   private applyStepSilent(step: SortStep) {
-    this.bars.forEach(b => { if (b.state !== 'sorted') b.state = 'default'; });
+    this.bars.forEach((b, idx) => {
+      if (b.state !== 'sorted') {
+        b.state = (idx === this.currentPivotIndex) ? 'pivot' : 'default';
+      }
+    });
+
     switch (step.type) {
       case 'compare':
         this.bars[step.indices[0]].state = 'compare';
         this.bars[step.indices[1]].state = 'compare';
         this.liveComparisons++;
         break;
+
       case 'swap': {
         this.bars[step.indices[0]].state = 'swap';
         this.bars[step.indices[1]].state = 'swap';
         const tmp = this.bars[step.indices[0]].value;
         this.bars[step.indices[0]].value = this.bars[step.indices[1]].value;
         this.bars[step.indices[1]].value = tmp;
+        if (step.indices[0] === this.currentPivotIndex) this.currentPivotIndex = step.indices[1];
+        else if (step.indices[1] === this.currentPivotIndex) this.currentPivotIndex = step.indices[0];
         this.liveInterchanges++;
         break;
       }
+
       case 'overwrite':
         this.bars[step.indices[0]].state = 'swap';
         this.bars[step.indices[0]].value = step.values![0];
         this.liveInterchanges++;
         break;
+
       case 'markSorted':
         this.bars[step.indices[0]].state = 'sorted';
+        if (step.indices[0] === this.currentPivotIndex) this.currentPivotIndex = -1;
         break;
+
       case 'pivot':
+        this.currentPivotIndex = step.indices[0];
         this.bars[step.indices[0]].state = 'pivot';
         break;
     }
   }
 
-  private replayTo(targetStep: number) 
-  
-  {
+  private replayTo(targetStep: number) {
     this.bars = [...this.response.originalArray].map(v => ({ value: v, state: 'default' as BarState }));
-    this.liveComparisons = 0;
+    this.liveComparisons  = 0;
     this.liveInterchanges = 0;
+    this.currentPivotIndex = -1;
     for (let i = 0; i < targetStep; i++) this.applyStepSilent(this.steps[i]);
   }
 
-  private delay(ms: number): Promise<void>
-  
-  {
+  private delay(ms: number): Promise<void> {
     return new Promise(res => setTimeout(res, ms));
   }
 }

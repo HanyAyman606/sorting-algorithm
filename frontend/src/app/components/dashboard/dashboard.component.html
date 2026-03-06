@@ -6,7 +6,6 @@
 
   <div class="body">
 
-    <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar">
 
       <div class="group">
@@ -96,7 +95,6 @@
         <input type="number" class="select" [(ngModel)]="runs" min="1" max="100"/>
       </div>
 
-      <!-- COMPACT ARRAY MANAGER -->
       <div class="group">
         <div class="manager-toggle" (click)="managerOpen=!managerOpen">
           <div class="group-label" style="margin-bottom:0;display:flex;align-items:center;gap:6px;">
@@ -162,7 +160,6 @@
 
     </aside>
 
-    <!-- ══ MAIN ══ -->
     <main class="main">
 
       <div class="page-header">
@@ -185,23 +182,19 @@
         </div>
       </div>
 
-      <!-- ══ SINGLE VISUALIZER ══ -->
       <ng-container *ngIf="viewMode==='single' && vizInstances.length===1">
         <div class="viz-card">
           <app-visualizer [response]="vizInstances[0].response" [label]="vizInstances[0].label" [color]="vizInstances[0].color"></app-visualizer>
         </div>
       </ng-container>
 
-      <!-- ══ STACKED (multiple from array manager, one per row) ══ -->
       <ng-container *ngIf="viewMode==='stacked' && vizInstances.length>0">
         <div class="viz-card" *ngFor="let inst of vizInstances">
           <app-visualizer [response]="inst.response" [label]="inst.label" [color]="inst.color"></app-visualizer>
         </div>
       </ng-container>
 
-      <!-- ══ COMPARE MODE ══ -->
       <ng-container *ngIf="viewMode==='compare' && vizInstances.length>0">
-        <!-- Compare header bar -->
         <div class="compare-header">
           <div class="compare-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -209,7 +202,6 @@
             </svg>
             Comparison Mode — {{ vizInstances.length }} Arrays
           </div>
-          <!-- Color legend for all arrays -->
           <div class="compare-legend">
             <span class="cmp-leg-item" *ngFor="let inst of vizInstances">
               <span class="cmp-dot" [style.background]="inst.color"></span>
@@ -218,7 +210,6 @@
           </div>
         </div>
 
-        <!-- 2-column grid for compare -->
         <div class="compare-grid" [class.one-col]="vizInstances.length===1">
           <div class="viz-card compare-card" *ngFor="let inst of vizInstances"
                [style.border-top-color]="inst.color">
@@ -227,7 +218,6 @@
         </div>
       </ng-container>
 
-      <!-- BENCHMARK TABLE -->
       <div class="bench-panel" *ngIf="benchResults.length>0">
         <app-benchmark-table [results]="benchResults" [inputArrays]="benchmarkInputArrays" (cleared)="benchResults=[]"></app-benchmark-table>
       </div>

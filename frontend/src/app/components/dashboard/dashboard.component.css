@@ -8,7 +8,6 @@
   overflow: hidden;
 }
 
-/* NAV */
 .navbar {
   display: flex;
   align-items: center;
@@ -30,14 +29,12 @@
   border-radius: 20px;
 }
 
-/* BODY */
 .body {
   display: flex;
   flex: 1;
-  overflow: hidden; /* ← required so .main can scroll */
+  overflow: hidden; 
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 268px;
   flex-shrink: 0;
@@ -319,11 +316,10 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── MAIN — scrollable ── */
 .main {
   flex: 1;
   padding: 20px 22px;
-  overflow-y: auto;        /* ← scroll here */
+  overflow-y: auto;        
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -336,7 +332,6 @@
 .page-header h1 { font-size: 1.7rem; font-weight: 800; }
 .page-header p { font-family: 'Space Mono', monospace; font-size: 0.66rem; color: var(--muted); margin-top: 2px; }
 
-/* STATS */
 .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
 .stat-card {
   background: rgba(21,18,42,0.6);
@@ -352,7 +347,6 @@
 .stat-label.pink   { color: var(--c3); }
 .stat-val { font-size: 1.65rem; font-weight: 700; }
 
-/* VIZ CARD */
 .viz-card {
   width: 100%;
   background: rgba(14,12,26,0.7);
@@ -363,7 +357,6 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.25);
 }
 
-/* COMPARE */
 .compare-header {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 10px;
@@ -388,7 +381,6 @@
 .compare-grid.one-col { grid-template-columns: 1fr; }
 .compare-card { border-top: 3px solid var(--border); }
 
-/* BENCH PANEL */
 .bench-panel {
   background: rgba(14,12,26,0.7);
   backdrop-filter: blur(12px);

@@ -1,6 +1,5 @@
 <div class="viz-wrap">
 
-  <!-- HEADER -->
   <div class="viz-header">
     <div class="viz-label" [style.border-left-color]="color">
       <span class="label-dot" [style.background]="color"></span>
@@ -21,7 +20,6 @@
     </div>
   </div>
 
-  <!-- ARRAY VALUES PANEL -->
   <div class="array-panel" [style.--panel-color]="color">
     <div class="array-panel-header">
       <span class="array-panel-title">{{ label }}</span>
@@ -49,7 +47,6 @@
     </div>
   </div>
 
-  <!-- LEGEND -->
   <div class="legend">
     <span class="leg-item"><span class="dot" [style.background]="color"></span>Default</span>
     <span class="leg-item"><span class="dot dot-compare"></span>Comparing</span>
@@ -58,37 +55,54 @@
     <span class="leg-item"><span class="dot dot-pivot"></span>Pivot</span>
   </div>
 
-  <!-- CONTROLS -->
   <div class="controls">
     <div class="ctrl-btns">
-      <button class="ctrl-btn" (click)="reset()" title="Reset">
+      <button class="ctrl-btn" (click)="reset()" title="Reset to start">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
       </button>
-      <button class="ctrl-btn" (click)="stepBack()" [disabled]="currentStep===0">
+      <button class="ctrl-btn" (click)="stepBack()" [disabled]="currentStep===0" title="Step back">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
       </button>
-      <button class="ctrl-btn play-btn" (click)="togglePlay()" [style.background]="color" [style.border-color]="color">
+      <button class="ctrl-btn play-btn" (click)="togglePlay()" [style.background]="color" [style.border-color]="color" title="{{ isPlaying ? 'Pause' : 'Play' }}">
         <svg *ngIf="isPlaying"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <svg *ngIf="!isPlaying" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       </button>
-      <button class="ctrl-btn" (click)="stepForward()" [disabled]="currentStep>=steps.length">
+      <button class="ctrl-btn" (click)="stepForward()" [disabled]="currentStep>=steps.length" title="Step forward">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
       </button>
-      <button class="ctrl-btn" (click)="skipToEnd()">
+      <button class="ctrl-btn" (click)="skipToEnd()" title="Skip to end">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><polygon points="14 4 24 12 14 20 14 4"/></svg>
       </button>
     </div>
+
     <div class="speed-row">
-      <span class="speed-label">Speed</span>
+      <span class="speed-label">Slow</span>
       <input type="range" class="speed-slider" min="10" max="1000" [value]="1010-speed" (input)="onSpeedChange($event)"/>
+      <span class="speed-label">Fast</span>
     </div>
   </div>
 
-  <!-- COUNTERS -->
   <div class="counters">
-    <div class="counter-badge" style="--bc:#4a90d9"><span class="c-label">Comparisons</span><span class="c-val">{{ liveComparisons }}</span></div>
-    <div class="counter-badge" style="--bc:var(--c4)"><span class="c-label">Interchanges</span><span class="c-val">{{ liveInterchanges }}</span></div>
-    <div class="counter-badge" style="--bc:var(--c3)"><span class="c-label">Step</span><span class="c-val">{{ currentStep }}/{{ steps.length }}</span></div>
+    <div class="counter-badge" style="--bc:#4a90d9">
+      <span class="c-label">Comparisons</span>
+      <span class="c-val">{{ liveComparisons }}</span>
+    </div>
+    <div class="counter-badge" style="--bc:var(--c4)">
+      <span class="c-label">Interchanges</span>
+      <span class="c-val">{{ liveInterchanges }}</span>
+    </div>
+    <div class="counter-badge" style="--bc:var(--c3)">
+      <span class="c-label">Step</span>
+      <span class="c-val">{{ currentStep }}/{{ steps.length }}</span>
+    </div>
+    <div class="counter-badge" style="--bc:#2ed573">
+      <span class="c-label">Total Cmp</span>
+      <span class="c-val">{{ response?.totalComparisons }}</span>
+    </div>
+    <div class="counter-badge" style="--bc:#2ed573">
+      <span class="c-label">Total Swp</span>
+      <span class="c-val">{{ response?.totalInterchanges }}</span>
+    </div>
   </div>
 
 </div>

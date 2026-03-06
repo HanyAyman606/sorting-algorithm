@@ -7,19 +7,24 @@ public class InsertionSort implements SortingAlgorithm {
     public void sort(int[] arr1, EinSehrya einSehrya) {
         int n = arr1.length;
         einSehrya.it_is_sorted(0);
+
         for (int i = 1; i < n; i++) {
-            int temp = arr1[i];
+            int key = arr1[i];
             int j = i - 1;
-            while (j >= 0 && arr1[j] > temp) {
+
+            while (j >= 0 && arr1[j] > key) {
                 einSehrya.compare(j, j + 1);
-                einSehrya.swap(j, j + 1);
+                einSehrya.overwrite(j + 1, arr1[j]);
                 arr1[j + 1] = arr1[j];
                 j--;
             }
+
             if (j >= 0) {
                 einSehrya.compare(j, j + 1);
             }
-            arr1[j + 1] = temp;
+
+            arr1[j + 1] = key;
+            einSehrya.overwrite(j + 1, key);
             einSehrya.it_is_sorted(i);
         }
     }

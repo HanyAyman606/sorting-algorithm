@@ -19,6 +19,7 @@ export class BenchmarkTableComponent {
   sortAsc = true;
   showArrayPanel = true;
   exportSuccess = false;
+  showArrayColumn = true;
 
   get fastest(): BenchmarkResponse | null {
     if (!this.results.length) return null;
@@ -31,7 +32,9 @@ export class BenchmarkTableComponent {
       const bv = b[this.sortCol];
       if (typeof av === 'string' && typeof bv === 'string')
         return this.sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
-      return this.sortAsc ? (av as number) - (bv as number) : (bv as number) - (av as number);
+      return this.sortAsc
+        ? (av as number) - (bv as number)
+        : (bv as number) - (av as number);
     });
   }
 
@@ -54,17 +57,17 @@ export class BenchmarkTableComponent {
     return map[algo] ?? algo;
   }
 
+  previewArray(arr: number[]): string {
+    if (!arr || arr.length === 0) return '—';
+    const preview = arr.slice(0, 8).join(', ');
+    return arr.length > 8 ? `[${preview}, ...]` : `[${preview}]`;
+  }
+
   exportCSV() {
     const headers = [
-      'Algorithm',
-      'Array Size',
-      'Generation Mode',
-      'Runs',
-      'Avg ms',
-      'Min ms',
-      'Max ms',
-      'Comparisons',
-      'Interchanges'
+      'Algorithm', 'Array Size', 'Mode / File', 'Runs',
+      'Avg ms', 'Min ms', 'Max ms', 'Comparisons', 'Interchanges',
+      'Original Array'
     ];
 
     const rows = this.sortedResults.map(r => [
@@ -76,24 +79,19 @@ export class BenchmarkTableComponent {
       r.minMs.toFixed(6),
       r.maxMs.toFixed(6),
       r.comparisons,
-      r.interchanges
+      r.interchanges,
+      r.originalArray && r.originalArray.length
+        ? `"[${r.originalArray.join(',')}]"`
+        : '""'
     ]);
 
     let csv = headers.join(',') + '\n';
     rows.forEach(r => { csv += r.join(',') + '\n'; });
 
-    // If there are input arrays, add them as a second section
-    if (this.inputArrays.length > 0) {
-      csv += '\narray_name,values\n';
-      this.inputArrays.forEach(arr => {
-        csv += `${arr.name},"[${arr.values.join(',')}]"\n`;
-      });
-    }
-
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const url  = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
+    link.href     = url;
     link.download = `sortlab_${Date.now()}.csv`;
     link.click();
     URL.revokeObjectURL(url);

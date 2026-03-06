@@ -8,51 +8,50 @@ public class HeapSort implements SortingAlgorithm {
     public void sort(int[] arr1, EinSehrya einSehrya) {
         int n = arr1.length;
 
-        int[] heap = new int[n + 1];
-        for (int i = 0; i < n; i++)
-            heap[i + 1] = arr1[i];
-
-        for (int i = n / 2; i >= 1; i--) {
-            heapify(heap, n, i, einSehrya);
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr1, n, i, einSehrya);
         }
 
-        for (int i = n; i > 1; i--) {
-            einSehrya.swap(0, i - 1);
-            int temp = heap[1];
-            heap[1] = heap[i];
-            heap[i] = temp;
+        for (int i = n - 1; i > 0; i--) {
+            einSehrya.swap(0, i);
+            int temp = arr1[0];
+            arr1[0] = arr1[i];
+            arr1[i] = temp;
 
-            einSehrya.it_is_sorted(i - 1);
+            einSehrya.it_is_sorted(i);
 
-            heapify(heap, i - 1, 1, einSehrya);
+            heapify(arr1, i, 0, einSehrya);
         }
+
         einSehrya.it_is_sorted(0);
-
-        for (int i = 0; i < n; i++)
-            arr1[i] = heap[i + 1];
     }
 
-    private void heapify(int[] heap, int n, int i, EinSehrya einSehrya) {
+    private void heapify(int[] arr1, int n, int i, EinSehrya einSehrya) {
         int largest = i;
-        int left  = 2 * i;
-        int right = 2 * i + 1;
+        int left    = 2 * i + 1;   
+        int right   = 2 * i + 2;   
 
-        if (left <= n && heap[left] > heap[largest]) {
-            einSehrya.compare(left - 1, largest - 1);
-            largest = left;
+        if (left < n) {
+            einSehrya.compare(left, largest);
+            if (arr1[left] > arr1[largest]) {
+                largest = left;
+            }
         }
 
-        if (right <= n && heap[right] > heap[largest]) {
-            einSehrya.compare(right - 1, largest - 1);
-            largest = right;
+        if (right < n) {
+            einSehrya.compare(right, largest);
+            if (arr1[right] > arr1[largest]) {
+                largest = right;
+            }
         }
 
         if (largest != i) {
-            einSehrya.swap(i - 1, largest - 1);
-            int temp = heap[i];
-            heap[i] = heap[largest];
-            heap[largest] = temp;
-            heapify(heap, n, largest, einSehrya);
+            einSehrya.swap(i, largest);
+            int temp = arr1[i];
+            arr1[i] = arr1[largest];
+            arr1[largest] = temp;
+
+            heapify(arr1, n, largest, einSehrya);
         }
     }
 }

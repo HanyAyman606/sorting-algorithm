@@ -3,13 +3,13 @@ package com.example.sortingalgorithm.dto;
 import java.util.List;
 
 public class BenchmarkRequest {
-    private List<String> algorithms;  // list from checkboxes
+    private List<String> algorithms;  
     private String inputType;
     private String generationMode;
     private int size;
     private int runs;
-    private String fileContent;       // single file content
-    private String fileName;          // single file name
+    private String fileContent;       
+    private String fileName;         
 
     public List<String> getAlgorithms() { return algorithms; }
     public void setAlgorithms(List<String> algorithms) { this.algorithms = algorithms; }

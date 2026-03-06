@@ -10,6 +10,7 @@ public class BenchmarkResponse {
     private double maxMs;
     private long comparisons;
     private long interchanges;
+    private int[] originalArray;
 
     public String getAlgorithm() { return algorithm; }
     public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
@@ -37,4 +38,7 @@ public class BenchmarkResponse {
 
     public long getInterchanges() { return interchanges; }
     public void setInterchanges(long interchanges) { this.interchanges = interchanges; }
+
+    public int[] getOriginalArray() { return originalArray; }
+    public void setOriginalArray(int[] originalArray) { this.originalArray = originalArray; }
 }

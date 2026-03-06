@@ -2,7 +2,7 @@ export interface BenchmarkRequest {
   algorithms: string[];
   inputType: 'generate' | 'file';
   generationMode?: string;
-  size: number;          
+  size: number;
   runs: number;
   fileContent?: string;
   fileName?: string;
@@ -18,4 +18,5 @@ export interface BenchmarkResponse {
   maxMs: number;
   comparisons: number;
   interchanges: number;
+  originalArray: number[];
 }

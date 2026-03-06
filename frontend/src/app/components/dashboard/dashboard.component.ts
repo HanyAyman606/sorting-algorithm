@@ -53,9 +53,12 @@ export class DashboardComponent {
   private colors = ['#1A05A2','#DE1A58','#F67D31','#8F0177','#2ed573','#4a90d9','#a29bfe','#fd79a8'];
 
   allAlgos = [
-    {value:'bubble',label:'Bubble Sort'},{value:'selection',label:'Selection Sort'},
-    {value:'insertion',label:'Insertion Sort'},{value:'merge',label:'Merge Sort'},
-    {value:'heap',label:'Heap Sort'},{value:'quick',label:'Quick Sort'},
+    { value:'bubble',    label:'Bubble Sort'    },
+    { value:'selection', label:'Selection Sort' },
+    { value:'insertion', label:'Insertion Sort' },
+    { value:'merge',     label:'Merge Sort'     },
+    { value:'heap',      label:'Heap Sort'      },
+    { value:'quick',     label:'Quick Sort'     },
   ];
 
   constructor(private api: ApiService) {}
@@ -71,14 +74,16 @@ export class DashboardComponent {
     this.benchResults = [];
     this.benchmarkInputArrays = [];
     this.viewMode = 'single';
-    this.displayComparisons = 0;
+    this.displayComparisons  = 0;
     this.displayInterchanges = 0;
-    this.displaySteps = 0;
+    this.displaySteps        = 0;
   }
 
   toggleAlgo(val: string, e: Event) {
     const checked = (e.target as HTMLInputElement).checked;
-    this.selectedAlgos = checked ? [...this.selectedAlgos, val] : this.selectedAlgos.filter(a => a !== val);
+    this.selectedAlgos = checked
+      ? [...this.selectedAlgos, val]
+      : this.selectedAlgos.filter(a => a !== val);
   }
   selectAll() { this.selectedAlgos = this.allAlgos.map(a => a.value); }
   clearAll()  { this.selectedAlgos = []; }
@@ -109,12 +114,14 @@ export class DashboardComponent {
     reader.onload = (ev) => {
       try {
         const content = ev.target?.result as string;
-        const values = this.parseContent(content);
+        const values  = this.parseContent(content);
         if (!values.length) { this.arrayErr = `${file.name}: no valid numbers`; return; }
         const id = Date.now().toString() + Math.random().toString(36).slice(2);
         this.parsedArrays = [...this.parsedArrays, {
-          id, name: file.name.replace('.txt',''), values,
-          color: this.colors[this.parsedArrays.length % this.colors.length],
+          id,
+          name:     file.name.replace('.txt',''),
+          values,
+          color:    this.colors[this.parsedArrays.length % this.colors.length],
           selected: true
         }];
       } catch { this.arrayErr = `${file.name}: parse error`; }
@@ -123,8 +130,8 @@ export class DashboardComponent {
   }
 
   parseContent(content: string): number[] {
-    const t = content.trim();
-    const nums = t.includes('[') ? t.substring(t.indexOf('[') + 1, t.indexOf(']')) : t;
+    const t    = content.trim();
+    const nums = t.includes('[') ? t.substring(t.indexOf('[')+1, t.indexOf(']')) : t;
     return nums.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
   }
 
@@ -136,39 +143,44 @@ export class DashboardComponent {
 
   private runViz() {
     if (this.inputType === 'generate' && !this.sizeAuto && (this.arraySize < 2 || this.arraySize > 100)) {
-      this.errorMsg = 'Size must be 2–100.'; return;
+      this.errorMsg = 'Size must be 2–100 for visualization.'; return;
     }
 
-    // If upload mode, use array manager files
     if (this.inputType === 'file') {
-      if (this.selectedArrays.length > 0) {
-        this.loadArraysForViz(this.selectedArrays, 'stacked');
-        return;
-      } else {
-        this.errorMsg = 'No file uploaded. Add files via Array Manager.'; return;
+      if (this.selectedArrays.length === 0) {
+        this.errorMsg = 'No file selected. Add files via Array Manager.'; return;
       }
+
+      const oversized = this.selectedArrays.filter(a => a.values.length > 100);
+      if (oversized.length > 0) {
+        this.errorMsg = `Files exceed 100 elements for visualization: ${oversized.map(a => a.name).join(', ')}. Use Benchmark mode for larger arrays.`;
+        return;
+      }
+
+      this.loadArraysForViz(this.selectedArrays, 'stacked');
+      return;
     }
 
     const req: VisualizationRequest = {
-      algorithm: this.selectedAlgo,
-      inputType: this.inputType,
+      algorithm:      this.selectedAlgo,
+      inputType:      this.inputType,
       generationMode: this.genMode,
-      size: this.sizeAuto ? 0 : this.arraySize,
+      size:           this.sizeAuto ? 0 : this.arraySize,
     };
 
     this.loading = true;
     this.api.visualize(req).subscribe({
       next: (res) => {
-        this.vizInstances = [{ label: 'Generated Array', color: '#1A05A2', response: res }];
-        this.viewMode = 'single';
-        this.displayComparisons = res.totalComparisons;
+        this.vizInstances        = [{ label: 'Generated Array', color: '#1A05A2', response: res }];
+        this.viewMode            = 'single';
+        this.displayComparisons  = res.totalComparisons;
         this.displayInterchanges = res.totalInterchanges;
-        this.displaySteps = res.steps.length;
-        this.loading = false;
+        this.displaySteps        = res.steps.length;
+        this.loading             = false;
       },
       error: (err) => {
         this.errorMsg = typeof err.error === 'string' ? err.error : 'Backend error. Is Spring Boot running?';
-        this.loading = false;
+        this.loading  = false;
       }
     });
   }
@@ -177,51 +189,39 @@ export class DashboardComponent {
     if (!this.selectedAlgos.length) { this.errorMsg = 'Select at least one algorithm.'; return; }
     if (this.runs < 1 || this.runs > 100) { this.errorMsg = 'Runs must be 1–100.'; return; }
 
-    // If upload mode, use array manager files
     if (this.inputType === 'file') {
-      if (this.selectedArrays.length > 0) {
-        this.onBenchmarkArrays();
-        return;
-      } else {
-        this.errorMsg = 'No file uploaded. Add files via Array Manager.'; return;
-      }
+      if (this.selectedArrays.length > 0) { this.onBenchmarkArrays(); return; }
+      else { this.errorMsg = 'No file selected. Add files via Array Manager.'; return; }
     }
 
     this.loading = true;
 
-    // Generate mode — silently fetch array for display
     const vizReq: VisualizationRequest = {
-      algorithm: this.selectedAlgos[0],
-      inputType: 'generate',
+      algorithm:      this.selectedAlgos[0],
+      inputType:      'generate',
       generationMode: this.genMode,
-      size: this.sizeAuto ? 0 : this.arraySize,
+      size:           this.sizeAuto ? 0 : this.arraySize,
     };
 
     this.api.visualize(vizReq).subscribe({
-      next: (res) => {
-        this.benchmarkInputArrays = [{ name: 'Generated Array', values: res.originalArray }];
-        this.doGenerateBench();
-      },
-      error: () => {
-        this.benchmarkInputArrays = [];
-        this.doGenerateBench();
-      }
+      next:  (res) => { this.benchmarkInputArrays = [{ name: 'Generated Array', values: res.originalArray }]; this.doGenerateBench(); },
+      error: ()    => { this.benchmarkInputArrays = []; this.doGenerateBench(); }
     });
   }
 
   private doGenerateBench() {
     const req: BenchmarkRequest = {
-      algorithms: this.selectedAlgos,
-      inputType: 'generate',
+      algorithms:     this.selectedAlgos,
+      inputType:      'generate',
       generationMode: this.genMode,
-      runs: this.runs,
-      size: this.sizeAuto ? 0 : this.arraySize,
+      runs:           this.runs,
+      size:           this.sizeAuto ? 0 : this.arraySize,
     };
     this.api.benchmark(req).subscribe({
-      next: (res) => { this.benchResults = res; this.loading = false; },
+      next:  (res) => { this.benchResults = res; this.loading = false; },
       error: (err) => {
         this.errorMsg = typeof err.error === 'string' ? err.error : 'Backend error. Is Spring Boot running?';
-        this.loading = false;
+        this.loading  = false;
       }
     });
   }
@@ -234,8 +234,8 @@ export class DashboardComponent {
 
     arrays.forEach((arr, i) => {
       const req: VisualizationRequest = {
-        algorithm: this.selectedAlgo,
-        inputType: 'file',
+        algorithm:   this.selectedAlgo,
+        inputType:   'file',
         fileContent: `arr=[${arr.values.join(',')}]`,
       };
       this.api.visualize(req).subscribe({
@@ -244,12 +244,11 @@ export class DashboardComponent {
           done++;
           if (done === arrays.length) {
             this.vizInstances = results.filter(r => !!r);
-            this.viewMode = mode;
-            if (this.vizInstances[0]) {
-              this.displayComparisons = this.vizInstances[0].response.totalComparisons;
-              this.displayInterchanges = this.vizInstances[0].response.totalInterchanges;
-              this.displaySteps = this.vizInstances[0].response.steps.length;
-            }
+            this.viewMode     = mode;
+
+            this.displayComparisons  = this.vizInstances.reduce((s, v) => s + v.response.totalComparisons, 0);
+            this.displayInterchanges = this.vizInstances.reduce((s, v) => s + v.response.totalInterchanges, 0);
+            this.displaySteps        = this.vizInstances.reduce((s, v) => s + v.response.steps.length, 0);
             this.loading = false;
           }
         },
@@ -261,12 +260,26 @@ export class DashboardComponent {
   onVisualizeArrays() {
     const arrays = this.selectedArrays;
     if (!arrays.length) return;
+
+    const oversized = arrays.filter(a => a.values.length > 100);
+    if (oversized.length > 0) {
+      this.arrayErr = `Too large for visualization (max 100): ${oversized.map(a=>a.name).join(', ')}`;
+      return;
+    }
+
     this.loadArraysForViz(arrays, 'stacked');
   }
 
   onCompareArrays() {
     const arrays = this.selectedArrays;
     if (arrays.length < 2) return;
+
+    const oversized = arrays.filter(a => a.values.length > 100);
+    if (oversized.length > 0) {
+      this.arrayErr = `Too large for visualization (max 100): ${oversized.map(a=>a.name).join(', ')}`;
+      return;
+    }
+
     this.loadArraysForViz(arrays, 'compare');
   }
 
@@ -276,7 +289,6 @@ export class DashboardComponent {
 
     this.killAll();
     this.loading = true;
-
     this.benchmarkInputArrays = arrays.map(a => ({ name: a.name, values: a.values }));
 
     let done = 0;
@@ -284,27 +296,24 @@ export class DashboardComponent {
 
     arrays.forEach(arr => {
       const req: BenchmarkRequest = {
-        algorithms: this.selectedAlgos,
-        inputType: 'file',
+        algorithms:  this.selectedAlgos,
+        inputType:   'file',
         fileContent: `arr=[${arr.values.join(',')}]`,
-        fileName: arr.name,
-        runs: this.runs,
-        size: arr.values.length,
+        fileName:    arr.name,
+        runs:        this.runs,
+        size:        arr.values.length,
       };
       this.api.benchmark(req).subscribe({
         next: (res) => {
           allResults.push(...res);
           done++;
-          if (done === arrays.length) {
-            this.benchResults = allResults;
-            this.loading = false;
-          }
+          if (done === arrays.length) { this.benchResults = allResults; this.loading = false; }
         },
         error: (err) => {
           done++;
           if (done === arrays.length) {
             this.errorMsg = typeof err.error === 'string' ? err.error : 'Backend error. Is Spring Boot running?';
-            this.loading = false;
+            this.loading  = false;
           }
         }
       });
