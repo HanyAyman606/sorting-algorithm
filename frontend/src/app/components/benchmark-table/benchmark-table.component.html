@@ -1,0 +1,113 @@
+<div class="bench-wrap">
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="result-count">{{ results.length }} result{{ results.length !== 1 ? 's' : '' }}</span>
+      <span class="fastest-tag" *ngIf="fastest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        Fastest: {{ formatAlgo(fastest.algorithm) }} — {{ fastest.avgMs.toFixed(4) }} ms avg
+      </span>
+    </div>
+
+    <div class="toolbar-right">
+
+      <!-- Toggle array panel -->
+      <button class="tool-btn"
+              [class.active]="showArrayPanel"
+              (click)="showArrayPanel = !showArrayPanel"
+              *ngIf="inputArrays.length > 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Arrays
+      </button>
+
+      <!-- Export CSV -->
+      <button class="tool-btn export-btn" (click)="exportCSV()" [class.success]="exportSuccess">
+        <svg *ngIf="!exportSuccess" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <svg *ngIf="exportSuccess" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        {{ exportSuccess ? 'Downloaded!' : 'Export CSV' }}
+      </button>
+
+      <!-- Clear -->
+      <button class="tool-btn clear-btn" (click)="cleared.emit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>
+        Clear
+      </button>
+
+    </div>
+  </div>
+
+  <!-- INPUT ARRAYS PANEL -->
+  <div class="arrays-panel" *ngIf="showArrayPanel && inputArrays.length > 0">
+    <div class="arrays-panel-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      Input Arrays
+    </div>
+    <div class="arrays-list">
+      <div class="array-entry" *ngFor="let arr of inputArrays">
+        <div class="array-entry-header">
+          <span class="array-entry-name">{{ arr.name }}</span>
+          <span class="array-entry-count">{{ arr.values.length }} elements</span>
+        </div>
+        <div class="array-entry-values">
+          <span class="aval" *ngFor="let v of arr.values">{{ v }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="scroll-x">
+    <table>
+      <thead>
+        <tr>
+          <th (click)="sort('algorithm')">Algorithm <span class="si">{{ getSortIcon('algorithm') }}</span></th>
+          <th (click)="sort('arraySize')">Size <span class="si">{{ getSortIcon('arraySize') }}</span></th>
+          <th (click)="sort('generationMode')">Mode <span class="si">{{ getSortIcon('generationMode') }}</span></th>
+          <th (click)="sort('runs')">Runs <span class="si">{{ getSortIcon('runs') }}</span></th>
+          <th (click)="sort('avgMs')">Avg ms <span class="si">{{ getSortIcon('avgMs') }}</span></th>
+          <th (click)="sort('minMs')">Min ms <span class="si">{{ getSortIcon('minMs') }}</span></th>
+          <th (click)="sort('maxMs')">Max ms <span class="si">{{ getSortIcon('maxMs') }}</span></th>
+          <th (click)="sort('comparisons')">Comparisons <span class="si">{{ getSortIcon('comparisons') }}</span></th>
+          <th (click)="sort('interchanges')">Interchanges <span class="si">{{ getSortIcon('interchanges') }}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of sortedResults" [class.fastest-row]="r === fastest">
+          <td class="algo-cell">
+            <span class="algo-name">{{ formatAlgo(r.algorithm) }}</span>
+            <span class="fastest-badge" *ngIf="r === fastest">⚡ FASTEST</span>
+          </td>
+          <td>{{ r.arraySize | number }}</td>
+          <td><span class="mode-tag">{{ r.generationMode }}</span></td>
+          <td>{{ r.runs }}</td>
+          <td [class.best-val]="r === fastest">{{ r.avgMs.toFixed(4) }}</td>
+          <td>{{ r.minMs.toFixed(4) }}</td>
+          <td>{{ r.maxMs.toFixed(4) }}</td>
+          <td>{{ r.comparisons | number }}</td>
+          <td>{{ r.interchanges | number }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

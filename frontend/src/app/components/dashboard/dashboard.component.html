@@ -1,0 +1,237 @@
+<div class="shell">
+
+  <nav class="navbar">
+    <span class="logo">Sorterer<span>Supreme</span></span>
+  </nav>
+
+  <div class="body">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+
+      <div class="group">
+        <div class="group-label">Mode</div>
+        <div class="mode-row">
+          <button class="mode-btn" [class.active]="mode==='visualization'" (click)="setMode('visualization')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/></svg>
+            Visualization
+          </button>
+          <button class="mode-btn" [class.active]="mode==='benchmark'" (click)="setMode('benchmark')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Benchmark
+          </button>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-label">Algorithm</div>
+        <select *ngIf="mode==='visualization'" class="select" [(ngModel)]="selectedAlgo">
+          <option value="bubble">Bubble Sort</option>
+          <option value="selection">Selection Sort</option>
+          <option value="insertion">Insertion Sort</option>
+          <option value="merge">Merge Sort</option>
+          <option value="heap">Heap Sort</option>
+          <option value="quick">Quick Sort</option>
+        </select>
+        <div *ngIf="mode==='benchmark'" class="checkbox-list">
+          <label class="cb-item" *ngFor="let a of allAlgos">
+            <input type="checkbox" [checked]="selectedAlgos.includes(a.value)" (change)="toggleAlgo(a.value,$event)"/>
+            {{ a.label }}
+          </label>
+          <div class="cb-actions">
+            <button class="link-btn" (click)="selectAll()">Select All</button>
+            <span class="sep">|</span>
+            <button class="link-btn" (click)="clearAll()">Clear All</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-label">Input Type</div>
+        <div class="toggle-row">
+          <button class="toggle-btn" [class.active]="inputType==='generate'" (click)="inputType='generate'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generate
+          </button>
+          <button class="toggle-btn" [class.active]="inputType==='file'" (click)="inputType='file'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Upload
+          </button>
+        </div>
+      </div>
+
+      <ng-container *ngIf="inputType==='generate'">
+        <div class="group">
+          <div class="group-label">Generation Mode</div>
+          <div class="pill-row">
+            <button class="pill" [class.active]="genMode==='random'" (click)="genMode='random'">Random</button>
+            <button class="pill" [class.active]="genMode==='sorted'" (click)="genMode='sorted'">Sorted</button>
+            <button class="pill" [class.active]="genMode==='inversely_sorted'" (click)="genMode='inversely_sorted'">Inv.</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="size-header">
+            <div class="group-label" style="margin-bottom:0">Array Size</div>
+            <button class="lock-btn" [class.locked]="sizeAuto" (click)="sizeAuto=!sizeAuto">
+              <svg *ngIf="sizeAuto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <svg *ngIf="!sizeAuto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+              {{ sizeAuto ? 'Auto' : 'Manual' }}
+            </button>
+          </div>
+          <div *ngIf="!sizeAuto" class="size-row">
+            <input type="range" class="slider" [min]="2" [max]="mode==='visualization' ? 100 : 10000" [(ngModel)]="arraySize"/>
+            <input type="number" class="size-num" [min]="2" [max]="mode==='visualization' ? 100 : 10000" [(ngModel)]="arraySize"/>
+          </div>
+          <div *ngIf="sizeAuto" class="auto-hint">Auto: {{ mode==='visualization' ? '50' : '1,000' }} elements</div>
+        </div>
+      </ng-container>
+
+<div class="group" *ngIf="false">
+        <div class="file-row">
+          <label class="file-btn">Browse<input type="file" accept=".txt" (change)="onFile($event)" hidden/></label>
+          <span class="file-name">{{ fileName || 'No file.' }}</span>
+        </div>
+      </div>
+
+      <div class="group" *ngIf="mode==='benchmark'">
+        <div class="group-label">Number of Runs</div>
+        <input type="number" class="select" [(ngModel)]="runs" min="1" max="100"/>
+      </div>
+
+      <!-- COMPACT ARRAY MANAGER -->
+      <div class="group">
+        <div class="manager-toggle" (click)="managerOpen=!managerOpen">
+          <div class="group-label" style="margin-bottom:0;display:flex;align-items:center;gap:6px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Array Manager
+            <span class="mgr-count" *ngIf="parsedArrays.length>0">{{ parsedArrays.length }}</span>
+          </div>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.open]="managerOpen"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+
+        <div class="manager-body" *ngIf="managerOpen">
+          <div class="mgr-top">
+            <label class="mgr-upload">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Add Files
+              <input type="file" accept=".txt" multiple (change)="onMultiFiles($event)" hidden/>
+            </label>
+            <ng-container *ngIf="parsedArrays.length>0">
+              <button class="mgr-link" (click)="selectAllArrays()">All</button>
+              <button class="mgr-link" (click)="clearAllArrays()">None</button>
+              <span class="mgr-sel">{{ selectedArrays.length }}/{{ parsedArrays.length }}</span>
+            </ng-container>
+          </div>
+          <div class="mgr-err" *ngIf="arrayErr">{{ arrayErr }}</div>
+          <div class="mgr-empty" *ngIf="parsedArrays.length===0">Upload .txt · Format: arr=[1,2,3] or 1,2,3</div>
+          <div class="mgr-list" *ngIf="parsedArrays.length>0">
+            <div class="mgr-chip" *ngFor="let arr of parsedArrays"
+                 [class.sel]="arr.selected" [style.--cc]="arr.color"
+                 (click)="arr.selected=!arr.selected">
+              <span class="chip-dot" [style.background]="arr.color"></span>
+              <div class="chip-info">
+                <span class="chip-name">{{ arr.name }}</span>
+                <span class="chip-n">{{ arr.values.length }} el</span>
+              </div>
+              <button class="chip-x" (click)="$event.stopPropagation();removeArray(arr.id)">×</button>
+            </div>
+          </div>
+          <div class="mgr-actions" *ngIf="parsedArrays.length>0 && mode==='visualization'">
+            <button class="mgr-btn viz" (click)="onVisualizeArrays()" [disabled]="selectedArrays.length===0||loading">
+              Visualize ({{ selectedArrays.length }})
+            </button>
+            <button class="mgr-btn cmp" (click)="onCompareArrays()" [disabled]="selectedArrays.length<2||loading">
+              Compare
+            </button>
+          </div>
+          <div class="mgr-actions" *ngIf="parsedArrays.length>0 && mode==='benchmark'">
+            <button class="mgr-btn viz" (click)="onBenchmarkArrays()" [disabled]="selectedArrays.length===0||loading">
+              Benchmark ({{ selectedArrays.length }})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-box" *ngIf="errorMsg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ errorMsg }}
+      </div>
+
+      <button class="run-btn" (click)="run()" [disabled]="loading">
+        <span *ngIf="!loading">RUN</span>
+        <span *ngIf="loading" class="spin"></span>
+      </button>
+
+    </aside>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main">
+
+      <div class="page-header">
+        <h1>Sorting Algorithm Visualizer</h1>
+        <p>Analyze and benchmark sorting algorithms in real-time</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Comparisons</div>
+          <div class="stat-val">{{ displayComparisons | number }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Interchanges</div>
+          <div class="stat-val">{{ displayInterchanges | number }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label pink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Steps</div>
+          <div class="stat-val">{{ displaySteps | number }}</div>
+        </div>
+      </div>
+
+      <!-- ══ SINGLE VISUALIZER ══ -->
+      <ng-container *ngIf="viewMode==='single' && vizInstances.length===1">
+        <div class="viz-card">
+          <app-visualizer [response]="vizInstances[0].response" [label]="vizInstances[0].label" [color]="vizInstances[0].color"></app-visualizer>
+        </div>
+      </ng-container>
+
+      <!-- ══ STACKED (multiple from array manager, one per row) ══ -->
+      <ng-container *ngIf="viewMode==='stacked' && vizInstances.length>0">
+        <div class="viz-card" *ngFor="let inst of vizInstances">
+          <app-visualizer [response]="inst.response" [label]="inst.label" [color]="inst.color"></app-visualizer>
+        </div>
+      </ng-container>
+
+      <!-- ══ COMPARE MODE ══ -->
+      <ng-container *ngIf="viewMode==='compare' && vizInstances.length>0">
+        <!-- Compare header bar -->
+        <div class="compare-header">
+          <div class="compare-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            Comparison Mode — {{ vizInstances.length }} Arrays
+          </div>
+          <!-- Color legend for all arrays -->
+          <div class="compare-legend">
+            <span class="cmp-leg-item" *ngFor="let inst of vizInstances">
+              <span class="cmp-dot" [style.background]="inst.color"></span>
+              {{ inst.label }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 2-column grid for compare -->
+        <div class="compare-grid" [class.one-col]="vizInstances.length===1">
+          <div class="viz-card compare-card" *ngFor="let inst of vizInstances"
+               [style.border-top-color]="inst.color">
+            <app-visualizer [response]="inst.response" [label]="inst.label" [color]="inst.color"></app-visualizer>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- BENCHMARK TABLE -->
+      <div class="bench-panel" *ngIf="benchResults.length>0">
+        <app-benchmark-table [results]="benchResults" [inputArrays]="benchmarkInputArrays" (cleared)="benchResults=[]"></app-benchmark-table>
+      </div>
+
+    </main>
+  </div>
+</div>

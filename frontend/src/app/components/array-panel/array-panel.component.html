@@ -1,0 +1,93 @@
+<div class="panel">
+
+  <div class="panel-header">
+    <div class="panel-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      Array Manager
+    </div>
+    <label class="upload-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Add Files
+      <input type="file" accept=".txt" multiple (change)="onFilesSelected($event)" hidden/>
+    </label>
+  </div>
+
+  <!-- Error -->
+  <div class="err" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+  <!-- Empty state -->
+  <div class="empty" *ngIf="arrays.length === 0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+    <p>Upload .txt files to load arrays</p>
+    <span>Format: arr=[1,2,3] or 1,2,3</span>
+  </div>
+
+  <!-- Array list -->
+  <div class="array-list" *ngIf="arrays.length > 0">
+
+    <div class="list-actions">
+      <button class="link-btn" (click)="selectAll()">Select All</button>
+      <span class="sep">|</span>
+      <button class="link-btn" (click)="clearAll()">Clear All</button>
+      <span class="count">{{ selectedArrays.length }} selected</span>
+    </div>
+
+    <div class="array-card" *ngFor="let arr of arrays"
+         [class.selected]="arr.selected"
+         [style.--card-color]="arr.color">
+      <div class="card-left" (click)="toggleSelect(arr)">
+        <div class="color-dot" [style.background]="arr.color"></div>
+        <div class="card-info">
+          <div class="card-name">{{ arr.name }}</div>
+          <div class="card-meta">{{ arr.values.length }} elements · [{{ arr.values.slice(0,5).join(', ') }}{{ arr.values.length > 5 ? '...' : '' }}]</div>
+        </div>
+      </div>
+      <div class="card-right">
+        <div class="checkbox" [class.checked]="arr.selected" (click)="toggleSelect(arr)">
+          <svg *ngIf="arr.selected" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="12" height="12">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <button class="remove-btn" (click)="removeArray(arr.id)" title="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="action-row" *ngIf="arrays.length > 0">
+    <button class="action-btn visualize-btn" (click)="onVisualize()"
+            [disabled]="selectedArrays.length === 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Visualize
+    </button>
+    <button class="action-btn compare-btn" (click)="onCompare()"
+            [disabled]="selectedArrays.length < 2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Compare ({{ selectedArrays.length }})
+    </button>
+  </div>
+
+</div>

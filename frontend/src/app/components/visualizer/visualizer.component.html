@@ -1,0 +1,94 @@
+<div class="viz-wrap">
+
+  <!-- HEADER -->
+  <div class="viz-header">
+    <div class="viz-label" [style.border-left-color]="color">
+      <span class="label-dot" [style.background]="color"></span>
+      {{ label }}
+    </div>
+    <div class="header-right">
+      <span class="size-pill">{{ bars.length }} el</span>
+      <div class="timer-badge" [class.running]="isPlaying">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        {{ formattedTime }}
+      </div>
+      <button class="sound-btn" (click)="soundEnabled=!soundEnabled" [class.muted]="!soundEnabled" title="Toggle sound">
+        <svg *ngIf="soundEnabled"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <svg *ngIf="!soundEnabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ARRAY VALUES PANEL -->
+  <div class="array-panel" [style.--panel-color]="color">
+    <div class="array-panel-header">
+      <span class="array-panel-title">{{ label }}</span>
+      <span class="array-panel-count">{{ bars.length }} values</span>
+    </div>
+    <div class="array-chips">
+      <span class="chip"
+            *ngFor="let bar of bars"
+            [ngClass]="'chip-' + bar.state"
+            [style.--cc]="color">
+        {{ bar.value }}
+      </span>
+    </div>
+  </div>
+
+  <!-- BARS -->
+  <div class="bars-area">
+    <div class="bar-wrap" *ngFor="let bar of bars">
+      <div class="bar"
+           [style.height.%]="getBarHeight(bar.value)"
+           [ngClass]="'bar-' + bar.state"
+           [style.background]="bar.state === 'default' ? color : null">
+      </div>
+      <div class="bar-val" *ngIf="bars.length <= 40" [ngClass]="'val-' + bar.state">{{ bar.value }}</div>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <span class="leg-item"><span class="dot" [style.background]="color"></span>Default</span>
+    <span class="leg-item"><span class="dot dot-compare"></span>Comparing</span>
+    <span class="leg-item"><span class="dot dot-swap"></span>Swapping</span>
+    <span class="leg-item"><span class="dot dot-sorted"></span>Sorted</span>
+    <span class="leg-item"><span class="dot dot-pivot"></span>Pivot</span>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <div class="ctrl-btns">
+      <button class="ctrl-btn" (click)="reset()" title="Reset">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
+      </button>
+      <button class="ctrl-btn" (click)="stepBack()" [disabled]="currentStep===0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+      </button>
+      <button class="ctrl-btn play-btn" (click)="togglePlay()" [style.background]="color" [style.border-color]="color">
+        <svg *ngIf="isPlaying"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg *ngIf="!isPlaying" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <button class="ctrl-btn" (click)="stepForward()" [disabled]="currentStep>=steps.length">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+      </button>
+      <button class="ctrl-btn" (click)="skipToEnd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><polygon points="14 4 24 12 14 20 14 4"/></svg>
+      </button>
+    </div>
+    <div class="speed-row">
+      <span class="speed-label">Speed</span>
+      <input type="range" class="speed-slider" min="10" max="1000" [value]="1010-speed" (input)="onSpeedChange($event)"/>
+    </div>
+  </div>
+
+  <!-- COUNTERS -->
+  <div class="counters">
+    <div class="counter-badge" style="--bc:#4a90d9"><span class="c-label">Comparisons</span><span class="c-val">{{ liveComparisons }}</span></div>
+    <div class="counter-badge" style="--bc:var(--c4)"><span class="c-label">Interchanges</span><span class="c-val">{{ liveInterchanges }}</span></div>
+    <div class="counter-badge" style="--bc:var(--c3)"><span class="c-label">Step</span><span class="c-val">{{ currentStep }}/{{ steps.length }}</span></div>
+  </div>
+
+</div>
